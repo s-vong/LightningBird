@@ -5,6 +5,7 @@ import sys
 import requests
 import lightningbird
 import socket
+import json
 
 '''
 def createSocket():
@@ -19,22 +20,37 @@ def createSocket():
     return s
 '''  
 
-stream = lightningbird.run()
+def main():
+    #Acquire twitter stream
+    stream = lightningbird.run()
 
-#socket = createSocket() #Insert parameter 
-host = socket.gethostname()
-port = 9009
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((host, port))
-for twt in stream:
-    s.send(str(twt))
-s.listen(1)
+    #Create TCP connection
+    host = socket.gethostname()
+    port = 9009
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind( (host, port) )
 
-conf = SparkConf().setAppName("LightningBird")
-sc = SparkContext(conf=conf)
+    #Send data through TCP 
+    for line in stream:
+        twt = json.loads(line)
+        s.send(twt)
+    s.listen(1)
 
-ssc = StreamingContext(sc, 5)   #StreamingContext(Spark Context, Seconds between processing stream)
-dataStream = ssc.socketTextStream("localhost", 9009)    #Listen for data from TCP source on local host port 9009
+'''
+    #Set up Spark
+    conf = SparkConf().setAppName("LightningBird")
+    sc = SparkContext(conf=conf)
 
-ssc.start()
-ssc.awaitTermination()
+    #StreamingContext(Spark Context, Seconds between processing stream)
+    ssc = StreamingContext(sc, 5)   
+
+    #Listen for data from TCP source on local host port 9009
+    dataStream = ssc.socketTextStream("localhost", 9009)    
+
+    #Start Streaming
+    ssc.start()
+    ssc.awaitTermination()
+'''
+
+if __name__ == '__main__':
+    main()
