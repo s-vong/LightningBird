@@ -5,9 +5,6 @@ import sys
 import lightningbird
 
 def main():
-    #Acquire twitter stream
-    stream = lightningbird.run()
-
     #Set up Spark
     conf = SparkConf().setAppName("LightningBird")
     sc = SparkContext(conf=conf)
@@ -16,7 +13,11 @@ def main():
     ssc = StreamingContext(sc, 5)   
 
     #Listen for data from TCP source on local host port 9009
-    dataStream = ssc.socketTextStream("localhost", 9009)    
+    dataStream = ssc.socketTextStream("laptop", 9009)    
+
+    #Processing
+    wordscnt = dataStream.flatmap(dataStream.split(" ")).count()
+    print(wordscnt)
 
     #Start Streaming
     ssc.start()
