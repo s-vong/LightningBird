@@ -18,13 +18,21 @@ def create_tcp():
     port = 9009
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind( (host, port) )
+    s.listen(1)
     return s
 
 def send_tweets(response, sock):
-    for line in response:
-        twt = json.dumps(line).encode('utf-8')
-        sock.sendall(twt)
-    sock.listen(1)
+    try:
+        print("Waiting for TCP connection...")
+        conn, addr = sock.accept()
+        with conn:
+            print("Connected by...  ", addr)
+            conn.sendall(b'Hello')
+            for line in response:
+                twt = json.dumps(line)
+                conn.sendall(twt)
+    except:
+        pass
 
 def run():
     response = get_tweets()
