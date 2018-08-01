@@ -27,9 +27,8 @@ def send_tweets(response, sock):
         conn, addr = sock.accept()
         with conn:
             print("Connected by...  ", addr)
-            conn.sendall(b'Hello')
             for line in response:
-                twt = json.dumps(line)
+                twt = json.dumps(line).encode('utf-8')
                 conn.sendall(twt)
     except:
         pass
