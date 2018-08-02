@@ -2,7 +2,6 @@ from pyspark import SparkConf, SparkContext
 from pyspark.streaming import StreamingContext
 from pyspark.sql import Row, SQLContext 
 import sys
-import lightningbird
 
 def main():
     #Set up Spark
@@ -16,8 +15,11 @@ def main():
     dataStream = ssc.socketTextStream("laptop", 9009)    
 
     #Processing
-    wordscnt = dataStream.flatmap(dataStream.split(" ")).count()
-    print(wordscnt)
+    wordscnt = dataStream.flatMap(lambda line: line.split(" "))\
+                        .map(lambda word: (word, 1))\
+                        .reduceByKey(lambda a, b: a + b)
+    #wordscnt.print()
+    wordscnt.saveAsTextFiles("output.txt")
 
     #Start Streaming
     ssc.start()
